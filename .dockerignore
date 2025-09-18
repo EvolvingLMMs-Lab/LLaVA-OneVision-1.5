@@ -1,0 +1,80 @@
+# Git and version control
+.git
+.gitignore
+.gitattributes
+
+# Docker files
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.coverage
+.pytest_cache
+*.egg-info
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Large data directories (should be mounted as volumes)
+data/
+models/
+checkpoints/
+outputs/
+logs/
+wandb/
+
+# Documentation and examples
+docs/
+examples/*/output/
+examples/*/logs/
+*.md
+LICENSE
+
+# Temporary and cache files
+tmp/
+temp/
+.tmp/
+.cache/
+.pytest_cache/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Node.js (if any)
+node_modules/
+npm-debug.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Jupyter notebooks
+*.ipynb
+.ipynb_checkpoints/
+
+# Test files
+tests/output/
+tests/logs/

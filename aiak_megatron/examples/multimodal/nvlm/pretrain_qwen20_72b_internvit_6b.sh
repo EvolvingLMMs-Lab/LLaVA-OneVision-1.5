@@ -149,8 +149,8 @@ else
     DATETIME=`date +'date_%y-%m-%d_time_%H-%M-%S'`
 
     srun -l --verbose \
-    --container-image <path to docker image> \
-    --container-mounts "<some mount>" \
+    --container-image llava-onevision:latest \
+    --container-mounts "${DATA_PATH}:/workspace/data,${MODEL_PATH}:/workspace/models,${CHECKPOINT_DIR}:/workspace/checkpoints,${LOGS_DIR}:/workspace/logs" \
     --output=${LOGS_DIR}/%x_%j_$DATETIME.log \
     sh -c "${run_cmd}"
 

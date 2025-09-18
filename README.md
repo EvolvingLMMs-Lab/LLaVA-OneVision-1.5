@@ -147,21 +147,60 @@ print(output_text)
 
 ### 1. Training Environment Setup
 
+For detailed Docker setup instructions, see [docker/README.md](docker/README.md).
+
+#### Quick Docker Setup
+
 ```bash
 # Clone repository
 git clone https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5.git
 cd LLaVA-OneVision-1.5
 
 # Build Docker image
-docker build -t llava_megatron:25.04 .
+docker build -t llava-onevision:latest .
 
-# Run container
-docker run -d --gpus all \
+# Option 1: Quick development run (interactive)
+docker run -it --rm \
+    --gpus all \
     --ipc host --net host --privileged --cap-add IPC_LOCK \
     --ulimit memlock=-1 --ulimit stack=67108864 \
-    --name "llava_container" \
-    llava_megatron:25.04
+    --name "llava-container" \
+    -v $(pwd):/workspace/LLaVA-OneVision-1.5 \
+    -v /path/to/your/data:/workspace/data \
+    -v /path/to/your/models:/workspace/models \
+    -v /path/to/your/checkpoints:/workspace/checkpoints \
+    llava-onevision:latest
+
+# Option 2: Use Docker Compose (recommended)
+# Copy and customize environment configuration
+cp docker/.env.example .env
+# Edit .env file with your paths
+docker-compose --profile dev up -d
+docker-compose exec llava-dev bash
 ```
+
+#### Alternative: Using Pre-built Images
+
+```bash
+# If available, you can use pre-built images
+docker pull nvcr.io/nvidia/pytorch:25.04-py3
+docker run -it --rm \
+    --gpus all \
+    --ipc host --net host --privileged --cap-add IPC_LOCK \
+    --ulimit memlock=-1 --ulimit stack=67108864 \
+    --name "llava-base" \
+    -v $(pwd):/workspace/LLaVA-OneVision-1.5 \
+    -w /workspace/LLaVA-OneVision-1.5 \
+    nvcr.io/nvidia/pytorch:25.04-py3 \
+    bash -c "pip install -r requirements.txt && bash"
+```
+
+#### Important Notes
+
+- **Volume Mounting**: Use volume mounts (`-v`) instead of symbolic links for better container isolation and portability
+- **GPU Support**: Requires NVIDIA Docker runtime for GPU acceleration
+- **Memory**: Ensure sufficient shared memory (`--ipc host`) for multi-process training
+- **Permissions**: Use `--privileged` flag for full hardware access during training
 
 ### 2. Checkpoint and Format Conversion
 

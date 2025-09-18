@@ -1,0 +1,139 @@
+version: '3.8'
+
+services:
+  # Development environment
+  llava-dev:
+    build: .
+    image: llava-onevision:latest
+    container_name: llava-dev
+    privileged: true
+    cap_add:
+      - IPC_LOCK
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    ipc: host
+    network_mode: host
+    volumes:
+      # Source code (read-write for development)
+      - .:/workspace/LLaVA-OneVision-1.5
+      # Data volumes (customize these paths)
+      - ${DATA_DIR:-./data}:/workspace/data
+      - ${MODEL_DIR:-./models}:/workspace/models:ro
+      - ${CHECKPOINT_DIR:-./checkpoints}:/workspace/checkpoints
+      - ${OUTPUT_DIR:-./outputs}:/workspace/outputs
+      - ${CONFIG_DIR:-./configs}:/workspace/configs:ro
+    working_dir: /workspace/LLaVA-OneVision-1.5
+    environment:
+      - CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-all}
+      - LLAVA_DATA_DIR=/workspace/data
+      - LLAVA_MODEL_DIR=/workspace/models
+      - LLAVA_CHECKPOINT_DIR=/workspace/checkpoints
+      - LLAVA_OUTPUT_DIR=/workspace/outputs
+      # Training environment variables
+      - AIAK_TRAINING_PATH=/workspace/LLaVA-OneVision-1.5
+      - DATA_PATH=/workspace/data
+      - TOKENIZER_PATH=/workspace/models/tokenizer
+      - CHECKPOINT_PATH=/workspace/models/stage0
+      - SAVE_CKPT_PATH=/workspace/checkpoints
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    stdin_open: true
+    tty: true
+    command: bash
+    profiles:
+      - dev
+
+  # Training environment
+  llava-training:
+    build: .
+    image: llava-onevision:latest
+    container_name: llava-training
+    privileged: true
+    cap_add:
+      - IPC_LOCK
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    ipc: host
+    network_mode: host
+    volumes:
+      - .:/workspace/LLaVA-OneVision-1.5:ro
+      - ${DATA_DIR:-./data}:/workspace/data:ro
+      - ${MODEL_DIR:-./models}:/workspace/models:ro
+      - ${CHECKPOINT_DIR:-./checkpoints}:/workspace/checkpoints
+      - ${OUTPUT_DIR:-./outputs}:/workspace/outputs
+      - ${LOG_DIR:-./logs}:/workspace/logs
+    working_dir: /workspace/LLaVA-OneVision-1.5
+    environment:
+      - CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-all}
+      - LLAVA_DATA_DIR=/workspace/data
+      - LLAVA_MODEL_DIR=/workspace/models
+      - LLAVA_CHECKPOINT_DIR=/workspace/checkpoints
+      - LLAVA_OUTPUT_DIR=/workspace/outputs
+      - AIAK_TRAINING_PATH=/workspace/LLaVA-OneVision-1.5
+      - DATA_PATH=/workspace/data
+      - TOKENIZER_PATH=/workspace/models/tokenizer
+      - CHECKPOINT_PATH=/workspace/models/stage0
+      - SAVE_CKPT_PATH=/workspace/checkpoints
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    profiles:
+      - training
+
+  # Inference environment (lightweight)
+  llava-inference:
+    build: .
+    image: llava-onevision:latest
+    container_name: llava-inference
+    privileged: true
+    cap_add:
+      - IPC_LOCK
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    ipc: host
+    ports:
+      - "${INFERENCE_PORT:-8000}:8000"
+    volumes:
+      - .:/workspace/LLaVA-OneVision-1.5:ro
+      - ${MODEL_DIR:-./models}:/workspace/models:ro
+      - ${OUTPUT_DIR:-./outputs}:/workspace/outputs
+    working_dir: /workspace/LLaVA-OneVision-1.5
+    environment:
+      - CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
+      - LLAVA_MODEL_DIR=/workspace/models
+      - LLAVA_OUTPUT_DIR=/workspace/outputs
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    profiles:
+      - inference
+
+# Networks (optional)
+networks:
+  default:
+    name: llava-network
+
+# Volumes for persistent data (optional)
+volumes:
+  llava-data:
+    driver: local
+  llava-models:
+    driver: local
+  llava-checkpoints:
+    driver: local
