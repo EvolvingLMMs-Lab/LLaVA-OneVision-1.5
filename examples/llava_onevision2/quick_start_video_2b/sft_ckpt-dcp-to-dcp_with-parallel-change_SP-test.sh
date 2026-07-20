@@ -13,8 +13,8 @@ DATA_PATH=${DATA_PATH:-"/ov2/dataset_sft/wd_60s_tem_grounding_frame_sampling_max
 TOKENIZER_PATH=${TOKENIZER_PATH:-"/ov2/pretrain_models/preprocessor/preprocessor_llava_onevision1_5"}
 # CHECKPOINT_PATH=${CHECKPOINT_PATH:-""}
 # CHECKPOINT_PATH=${CHECKPOINT_PATH:-"/ov2/feilong/checkpoint_release/32_frames_llava_next_video_2M/"}  # load torch checkpoint
-# CHECKPOINT_PATH=${CHECKPOINT_PATH:-"/ov2/feilong/checkpoint_release/32_frames_llava_next_video_2M/release"}  # torch_dist random initialization
-CHECKPOINT_PATH=${CHECKPOINT_PATH:-"/workspace/LLaVA-OneVision-2.0/examples/llava_onevision2/quick_start_video_2b/output/sft_ckpt-dcp-to-dcp_continue_train"} # load dcp checkpoint
+CHECKPOINT_PATH=${CHECKPOINT_PATH:-"/ov2/feilong/checkpoint_release/32_frames_llava_next_video_2M/release"}  # torch_dist random initialization
+# CHECKPOINT_PATH=${CHECKPOINT_PATH:-"/workspace/LLaVA-OneVision-2.0/examples/llava_onevision2/quick_start_video_2b/output/sft_ckpt-dcp-to-dcp_continue_train"} # load dcp checkpoint
 # CHECKPOINT_PATH=${CHECKPOINT_PATH:-"/workspace/train_ov2/LLaVA-OneVision-2.0/examples/llava_onevision2/quick_start_video_2b/output/sft_ckpt-dcp-to-dcp_with-parallel-change_SP-test"}
 
 export PYDEVD_DISABLE_FILE_VALIDATION=1
