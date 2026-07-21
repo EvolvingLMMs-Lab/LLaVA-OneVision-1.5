@@ -6,6 +6,7 @@ from megatron.core.transformer.spec_utils import import_module
 
 from aiak_training_llm.models.factory import register_model_provider
 from aiak_training_llm.models.llava_onevision2.llava_onevision2_config import get_adapeter_config, get_vision_config
+from aiak_training_llm.models.llava_onevision2.adapter import get_adapter_type
 from aiak_training_llm.models.llava_onevision2.llava_onevision2_layer_spec import (
     get_adapeter_layer_with_spec,
     get_qwen_layer_with_te_spec,
@@ -51,6 +52,10 @@ def llavaov_2_model_provider(
         setattr(vision_config, k, v)
     for k, v in asdict(get_adapeter_config(model_family, args.model_name)).items():
         setattr(adapter_config, k, v)
+    # The adapter returns full replicated image embeddings for masked_scatter;
+    # language-side sequence parallelism is applied after fusion.
+    adapter_config.sequence_parallel = False
+    print_rank_0(f"using {get_adapter_type()} as adapter type")
     # print(vision_config)
     setattr(language_config, "image_token_id", 151655)
     setattr(language_config, "video_token_id", 151656)
