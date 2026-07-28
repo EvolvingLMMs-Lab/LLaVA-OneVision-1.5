@@ -17,7 +17,7 @@ __pycache__/
 /eggs/
 /lib/
 /lib64/
-/output/
+# /output/
 /parts/
 /sdist/
 /var/
@@ -25,6 +25,8 @@ __pycache__/
 /.installed.cfg
 /*.egg
 /.eggs
+work_summary
+output
 
 # AUTHORS and ChangeLog will be generated while packaging
 /AUTHORS
