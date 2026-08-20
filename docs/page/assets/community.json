@@ -1,7 +1,7 @@
 {
   "owner": "EvolvingLMMs-Lab",
   "repo": "LLaVA-OneVision-2",
-  "generated_at": "2026-08-19T01:15:37.296002+00:00",
+  "generated_at": "2026-08-20T01:14:35.053537+00:00",
   "contributors": [
     {
       "login": "anxiangsir",
@@ -5984,6 +5984,31 @@
       "login": "junjiehe96",
       "starred_at": "2026-08-18T02:56:02Z",
       "avatar_url": "https://avatars.githubusercontent.com/u/45650807?v=4"
+    },
+    {
+      "login": "WisemanLim",
+      "starred_at": "2026-08-19T02:43:34Z",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4724928?v=4"
+    },
+    {
+      "login": "bigssu",
+      "starred_at": "2026-08-19T03:10:13Z",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10752265?v=4"
+    },
+    {
+      "login": "asphaltsanai",
+      "starred_at": "2026-08-19T03:32:59Z",
+      "avatar_url": "https://avatars.githubusercontent.com/u/254116687?v=4"
+    },
+    {
+      "login": "arobiw",
+      "starred_at": "2026-08-19T08:38:03Z",
+      "avatar_url": "https://avatars.githubusercontent.com/u/123049238?v=4"
+    },
+    {
+      "login": "Topabaem05",
+      "starred_at": "2026-08-19T12:19:47Z",
+      "avatar_url": "https://avatars.githubusercontent.com/u/87803226?v=4"
     }
   ]
 }
