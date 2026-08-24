@@ -1,7 +1,7 @@
 {
   "owner": "EvolvingLMMs-Lab",
   "repo": "LLaVA-OneVision-2",
-  "generated_at": "2026-08-23T01:20:48.912020+00:00",
+  "generated_at": "2026-08-24T01:18:23.837792+00:00",
   "contributors": [
     {
       "login": "anxiangsir",
@@ -6029,6 +6029,11 @@
       "login": "joelcwat",
       "starred_at": "2026-08-22T00:20:41Z",
       "avatar_url": "https://avatars.githubusercontent.com/u/319644743?v=4"
+    },
+    {
+      "login": "shumozyx2026",
+      "starred_at": "2026-08-23T01:55:43Z",
+      "avatar_url": "https://avatars.githubusercontent.com/u/320036580?v=4"
     }
   ]
 }
