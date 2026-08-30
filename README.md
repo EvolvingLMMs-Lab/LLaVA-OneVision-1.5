@@ -510,28 +510,37 @@ Thanks so much to all of our amazing contributors!
 
 ## Citation
 
-If you find *LLaVA-OneVision-2* useful in your research, please consider to cite the following related papers:
+If you find LLaVA-OneVision-2 useful in your research, please cite the following paper:
 
-```
-@inproceedings{LLaVA-OneVision-2,
-  title={LLaVA-OneVision-2: Towards Next-Generation Perceptual Intelligence},
-  author={An, Xiang and Xie, Yin and Tang, Feilong and Yan, Yunyao and Tan, Huajie and Zhu, Didi and Chen, Changrui and Zhao, Xiuwei and Qin, Bin and Yang, Kaicheng and Shen, Yifei and Zhang, Yuanhan and Zhang, Kaichen and Zhang, Wenkang and Cheng, Zheng and Zhang, Nansen and Wu, Chunsheng and Ge, Chunjiang and Ran, Zimin and Song, Dehua and Li, Chunyuan and Feng, Shikun and Hu, Ming and Chen, Zhangquan and Niu, Junbo and Li, Bo and Feng, Ziyong and Liu, Ziwei and Ge, Zongyuan and Deng, Jiankang},
-  booktitle={arXiv},
-  year={2026}
+```bibtex
+@misc{an2026llavaonevision2nextgenerationperceptualintelligence,
+  title         = {LLaVA-OneVision-2: Towards Next-Generation Perceptual Intelligence},
+  author        = {Xiang An and Yin Xie and Feilong Tang and Yunyao Yan and Huajie Tan and Didi Zhu and Changrui Chen and Xiuwei Zhao and Bin Qin and Kaicheng Yang and Yifei Shen and Yuanhan Zhang and Kaichen Zhang and Wenkang Zhang and Zheng Cheng and Nansen Zhang and Chunsheng Wu and Chunjiang Ge and Zimin Ran and Dehua Song and Chunyuan Li and Shikun Feng and Ming Hu and Zhangquan Chen and Junbo Niu and Bo Li and Ziyong Feng and Ziwei Liu and Zongyuan Ge and Jiankang Deng},
+  year          = {2026},
+  eprint        = {2605.25979},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CV},
+  url           = {https://arxiv.org/abs/2605.25979}
 }
 
-@inproceedings{LLaVA-OneVision-1.5,
-  title={LLaVA-OneVision-1.5: Fully Open Framework for Democratized Multimodal Training},
-  author={An, Xiang and Xie, Yin and Yang, Kaicheng and Zhang, Wenkang and Zhao, Xiuwei and Cheng, Zheng and Wang, Yirui and Xu, Songcen and Chen, Changrui and Wu, Chunsheng and Tan, Huajie and Li, Chunyuan and Yang, Jing and Yu, Jie and Wang, Xiyao and Qin, Bin and Wang, Yumeng and Yan, Zizhen and Feng, Ziyong and Liu, Ziwei and Li, Bo and Deng, Jiankang},
-  booktitle={arXiv},
-  year={2025}
- }
+@misc{an2025llavaonevision15fullyopenframework,
+  title         = {LLaVA-OneVision-1.5: Fully Open Framework for Democratized Multimodal Training},
+  author        = {Xiang An and Yin Xie and Kaicheng Yang and Wenkang Zhang and Xiuwei Zhao and Zheng Cheng and Yirui Wang and Songcen Xu and Changrui Chen and Didi Zhu and Chunsheng Wu and Huajie Tan and Chunyuan Li and Jing Yang and Jie Yu and Xiyao Wang and Bin Qin and Yumeng Wang and Zizhen Yan and Ziyong Feng and Ziwei Liu and Bo Li and Jiankang Deng},
+  year          = {2025},
+  eprint        = {2509.23661},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CV},
+  url           = {https://arxiv.org/abs/2509.23661}
+}
 
-@article{tang2026onevisionencoder,
-  title={OneVision-Encoder: Codec-Aligned Sparsity as a Foundational Principle for Multimodal Intelligence},
-  author={Tang, Feilong and An, Xiang and Yan, Yunyao and Xie, Yin and Qin, Bin and Yang, Kaicheng and Shen, Yifei and Zhang, Yuanhan and Li, Chunyuan and Feng, Shikun and Chen, Changrui and Tan, Huajie and Hu, Ming and Zhang, Manyuan and Li, Bo and Feng, Ziyong and Liu, Ziwei and Ge, Zongyuan and Deng, Jiankang},
-  journal={arXiv preprint arXiv:2602.08683},
-  year={2026}
+@misc{tang2026onevisionencodercodecalignedsparsityfoundational,
+  title         = {OneVision-Encoder: Codec-Aligned Sparsity as a Foundational Principle for Multimodal Intelligence},
+  author        = {Feilong Tang and Xiang An and Yunyao Yan and Yin Xie and Bin Qin and Kaicheng Yang and Yifei Shen and Yuanhan Zhang and Chunyuan Li and Shikun Feng and Changrui Chen and Huajie Tan and Ming Hu and Manyuan Zhang and Bo Li and Ziyong Feng and Ziwei Liu and Zongyuan Ge and Jiankang Deng},
+  year          = {2026},
+  eprint        = {2602.08683},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CV},
+  url           = {https://arxiv.org/abs/2602.08683}
 }
 
 @article{lillava,
