@@ -152,39 +152,88 @@
           </div>
         </section>
 
-        <section class="projects-column projects-column-community" aria-label="Community">
+        <section class="projects-column projects-column-community" id="contributors" aria-label="Community">
           <h2 class="projects-column-title">
             <span class="i18n" data-lang="en">Community</span><span class="i18n" data-lang="zh">社区</span>
           </h2>
 
-          <div class="community-block">
-            <div class="community-block-header">
-              <h3 class="community-block-title">
-                <span class="i18n" data-lang="en">Contributors</span><span class="i18n" data-lang="zh">贡献者</span>
-              </h3>
+          <div class="community-block contributor-explorer">
+            <div class="community-block-header contributor-explorer-header">
+              <div>
+                <p class="community-eyebrow">OPEN SOURCE, BUILT TOGETHER</p>
+                <h3 class="community-block-title contributor-explorer-title">
+                  <span class="i18n" data-lang="en">Contributor Explorer</span><span class="i18n" data-lang="zh">贡献者图谱</span>
+                </h3>
+                <p class="community-block-subtitle contributor-explorer-subtitle">
+                  <span class="i18n" data-lang="en">Meet the people building LLaVA-OneVision-2. Search, sort, and explore activity over time.</span><span class="i18n" data-lang="zh">认识共同构建 LLaVA-OneVision-2 的伙伴，按名字搜索、排序并探索贡献趋势。</span>
+                </p>
+              </div>
               <a class="community-count" id="community-contrib-count"
                  href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-2/graphs/contributors"
-                 target="_blank" rel="noopener noreferrer">—</a>
+                 target="_blank" rel="noopener noreferrer" aria-label="Open GitHub contributors graph">—</a>
             </div>
-            <p class="community-block-subtitle">
-              <span class="i18n" data-lang="en">Ranked by commit count.</span><span class="i18n" data-lang="zh">按提交数排序。</span>
-            </p>
-            <div class="community-grid community-grid-contrib" id="community-contributors" aria-live="polite"></div>
+
+            <div class="contributor-summary" aria-live="polite">
+              <div class="contributor-metric">
+                <span class="contributor-metric-value" id="contributor-total">—</span>
+                <span class="contributor-metric-label"><span class="i18n" data-lang="en">Contributors</span><span class="i18n" data-lang="zh">贡献者</span></span>
+              </div>
+              <div class="contributor-metric">
+                <span class="contributor-metric-value" id="contributor-commits">—</span>
+                <span class="contributor-metric-label"><span class="i18n" data-lang="en">Commits in view</span><span class="i18n" data-lang="zh">当前提交数</span></span>
+              </div>
+              <div class="contributor-metric">
+                <span class="contributor-metric-value" id="contributor-active">—</span>
+                <span class="contributor-metric-label"><span class="i18n" data-lang="en">Active in 90 days</span><span class="i18n" data-lang="zh">近 90 天活跃</span></span>
+              </div>
+            </div>
+
+            <div class="contributor-toolbar" aria-label="Contributor filters">
+              <label class="contributor-search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                <span class="sr-only">Search contributors</span>
+                <input id="contributor-search" type="search" autocomplete="off" placeholder="Search contributors / 搜索贡献者" />
+              </label>
+
+              <div class="contributor-range" role="group" aria-label="Activity period">
+                <button type="button" class="contributor-range-button" data-range="90"><span class="i18n" data-lang="en">90 days</span><span class="i18n" data-lang="zh">90 天</span></button>
+                <button type="button" class="contributor-range-button" data-range="365"><span class="i18n" data-lang="en">1 year</span><span class="i18n" data-lang="zh">1 年</span></button>
+                <button type="button" class="contributor-range-button active" data-range="all"><span class="i18n" data-lang="en">All time</span><span class="i18n" data-lang="zh">全部</span></button>
+              </div>
+
+              <label class="contributor-sort-label">
+                <span class="sr-only">Sort contributors</span>
+                <select id="contributor-sort">
+                  <option value="commits">Most commits</option>
+                  <option value="recent">Recently active</option>
+                  <option value="name">Name A–Z</option>
+                </select>
+              </label>
+            </div>
+
+            <p class="contributor-results-meta" id="contributor-results-meta" aria-live="polite"></p>
+            <div class="contributor-grid" id="community-contributors" role="list" aria-live="polite"></div>
+            <div class="contributor-empty" id="contributor-empty" hidden>
+              <span class="i18n" data-lang="en">No contributors match that search.</span><span class="i18n" data-lang="zh">没有找到匹配的贡献者。</span>
+            </div>
           </div>
 
-          <div class="community-block">
+          <div class="community-block stargazer-block">
             <div class="community-block-header">
               <h3 class="community-block-title">
-                <span class="i18n" data-lang="en">Stargazers</span><span class="i18n" data-lang="zh">点星者</span>
+                <span class="i18n" data-lang="en">Community Stargazers</span><span class="i18n" data-lang="zh">社区点星者</span>
               </h3>
               <a class="community-count" id="community-star-count"
                  href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-2/stargazers"
                  target="_blank" rel="noopener noreferrer">—</a>
             </div>
             <p class="community-block-subtitle">
-              <span class="i18n" data-lang="en">Ranked by star time — earliest first.</span><span class="i18n" data-lang="zh">按 Star 时间排序——最早的在前。</span>
+              <span class="i18n" data-lang="en">A growing constellation of people following the project.</span><span class="i18n" data-lang="zh">持续关注项目成长的社区伙伴。</span>
             </p>
             <div class="community-grid community-grid-stars" id="community-stargazers" aria-live="polite"></div>
+            <button class="stargazer-more" id="stargazer-more" type="button" hidden>
+              <span class="i18n" data-lang="en">Show more</span><span class="i18n" data-lang="zh">显示更多</span>
+            </button>
           </div>
         </section>
       </div>
@@ -234,6 +283,7 @@
         document.body.classList.toggle('lang-zh', lang === 'zh');
         if (langToggle) langToggle.textContent = lang === 'zh' ? 'EN' : '中文';
         localStorage.setItem('llava-onevision-2-lang', lang);
+        window.dispatchEvent(new CustomEvent('llava-language-change', { detail: { lang } }));
       }
       applyLang(currentLang);
       if (langToggle) {
@@ -242,63 +292,7 @@
         });
       }
 
-      (function renderCommunity() {
-        const contribEl = document.getElementById('community-contributors');
-        const starEl = document.getElementById('community-stargazers');
-        const contribCount = document.getElementById('community-contrib-count');
-        const starCount = document.getElementById('community-star-count');
-        if (!contribEl || !starEl) return;
-
-        fetch('../assets/community.json', { cache: 'no-cache' })
-          .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-          .then(data => {
-            const owner = data.owner;
-            const repo = data.repo;
-            const renderTile = (item, isTop) => {
-              const a = document.createElement('a');
-              a.className = 'community-tile' + (isTop ? ' community-tile-top' : '');
-              a.href = 'https://github.com/' + encodeURIComponent(item.login);
-              a.target = '_blank';
-              a.rel = 'noopener noreferrer';
-              a.title = item.login;
-              a.setAttribute('aria-label', item.login);
-              const img = document.createElement('img');
-              img.className = 'community-avatar';
-              img.alt = item.login;
-              img.loading = 'lazy';
-              img.decoding = 'async';
-              img.src = item.avatar_url;
-              a.appendChild(img);
-              return a;
-            };
-
-            const contributors = data.contributors || [];
-            const frag1 = document.createDocumentFragment();
-            contributors.forEach((c, i) => frag1.appendChild(renderTile(c, i === 0)));
-            contribEl.replaceChildren(frag1);
-            if (contribCount) {
-              contribCount.textContent = contributors.length;
-              contribCount.href = 'https://github.com/' + owner + '/' + repo + '/graphs/contributors';
-            }
-
-            const stargazers = data.stargazers || [];
-            const frag2 = document.createDocumentFragment();
-            stargazers.forEach((s, i) => frag2.appendChild(renderTile(s, i === 0)));
-            starEl.replaceChildren(frag2);
-            if (starCount) {
-              starCount.textContent = stargazers.length;
-              starCount.href = 'https://github.com/' + owner + '/' + repo + '/stargazers';
-            }
-          })
-          .catch(err => {
-            console.error('community.json load failed:', err);
-            const msg = document.createElement('p');
-            msg.className = 'community-error';
-            msg.textContent = 'Community data unavailable.';
-            contribEl.replaceChildren(msg);
-            starEl.replaceChildren(msg.cloneNode(true));
-          });
-      })();
     </script>
+    <script src="../assets/community-explorer.js"></script>
   </body>
 </html>

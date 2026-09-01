@@ -10,6 +10,7 @@ import argparse
 import json
 import subprocess
 import sys
+import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -19,6 +20,15 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_OUT_PATH = REPO_ROOT / "docs" / "page" / "assets" / "community.json"
 
 DEFAULT_EXCLUDE_LOGINS: frozenset[str] = frozenset({"jiankangdeng"})
+GITHUB_API_VERSION = "2026-03-10"
+
+
+@dataclass(frozen=True)
+class WeeklyActivity:
+    week: str
+    commits: int
+    additions: int
+    deletions: int
 
 
 @dataclass(frozen=True)
@@ -26,6 +36,7 @@ class Contributor:
     login: str
     contributions: int
     avatar_url: str
+    weekly_activity: tuple[WeeklyActivity, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -42,7 +53,7 @@ def _gh_api_paginated(path: str, extra_headers: list[str] | None = None) -> list
     sep = "&" if "?" in path else "?"
     while True:
         url = f"{path}{sep}per_page={per_page}&page={page}"
-        cmd = ["gh", "api"]
+        cmd = ["gh", "api", "-H", f"X-GitHub-Api-Version: {GITHUB_API_VERSION}"]
         for h in extra_headers or []:
             cmd.extend(["-H", h])
         cmd.append(url)
@@ -60,6 +71,84 @@ def _gh_api_paginated(path: str, extra_headers: list[str] | None = None) -> list
             break
         page += 1
     return out
+
+
+def _gh_api_with_status(path: str) -> tuple[int, object | None]:
+    """Call one REST endpoint and return its HTTP status and JSON body."""
+    proc = subprocess.run(
+        [
+            "gh",
+            "api",
+            "--include",
+            "-H",
+            "Accept: application/vnd.github+json",
+            "-H",
+            f"X-GitHub-Api-Version: {GITHUB_API_VERSION}",
+            path,
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if proc.returncode != 0:
+        raise RuntimeError(f"gh api failed ({path}):\n{proc.stderr}")
+
+    response = proc.stdout.replace("\r\n", "\n")
+    headers, separator, body = response.partition("\n\n")
+    if not separator or not headers.startswith("HTTP/"):
+        raise RuntimeError(f"could not parse gh api response for {path}")
+    try:
+        status = int(headers.splitlines()[0].split()[1])
+    except (IndexError, ValueError) as exc:
+        raise RuntimeError(f"could not parse HTTP status for {path}") from exc
+    return status, json.loads(body) if body.strip() else None
+
+
+def fetch_contributor_activity(owner: str, repo: str) -> dict[str, tuple[WeeklyActivity, ...]]:
+    """Fetch GitHub's cached per-contributor weekly statistics.
+
+    The statistics endpoint can return HTTP 202 while GitHub computes the
+    result. Retry briefly, then keep the ordinary contributor data usable if
+    the expensive statistics are still unavailable.
+    """
+    path = f"repos/{owner}/{repo}/stats/contributors"
+    delays = (2, 4, 8, 16)
+    for attempt in range(len(delays) + 1):
+        status, payload = _gh_api_with_status(path)
+        if status == 200:
+            if not isinstance(payload, list):
+                raise RuntimeError(f"unexpected statistics response from {path}: {payload!r}")
+            out: dict[str, tuple[WeeklyActivity, ...]] = {}
+            for entry in payload:
+                author = entry.get("author") or {}
+                login = author.get("login")
+                if not login:
+                    continue
+                weeks: list[WeeklyActivity] = []
+                for week in entry.get("weeks") or []:
+                    timestamp = int(week.get("w", 0))
+                    if timestamp <= 0:
+                        continue
+                    weeks.append(
+                        WeeklyActivity(
+                            week=datetime.fromtimestamp(timestamp, timezone.utc).date().isoformat(),
+                            commits=int(week.get("c", 0)),
+                            additions=int(week.get("a", 0)),
+                            deletions=int(week.get("d", 0)),
+                        )
+                    )
+                out[login.lower()] = tuple(weeks)
+            return out
+        if status in (202, 204) and attempt < len(delays):
+            delay = delays[attempt]
+            print(f"  contributor statistics pending; retrying in {delay}s...", file=sys.stderr)
+            time.sleep(delay)
+            continue
+        if status in (202, 204):
+            print("  warning: contributor statistics are still unavailable; continuing without trends", file=sys.stderr)
+            return {}
+        raise RuntimeError(f"unexpected HTTP {status} from {path}")
+    return {}
 
 
 def fetch_contributors(owner: str, repo: str, exclude: frozenset[str]) -> list[Contributor]:
@@ -80,6 +169,21 @@ def fetch_contributors(owner: str, repo: str, exclude: frozenset[str]) -> list[C
         )
     out.sort(key=lambda c: (-c.contributions, c.login.lower()))
     return out
+
+
+def attach_contributor_activity(
+    contributors: list[Contributor],
+    activity_by_login: dict[str, tuple[WeeklyActivity, ...]],
+) -> list[Contributor]:
+    return [
+        Contributor(
+            login=c.login,
+            contributions=c.contributions,
+            avatar_url=c.avatar_url,
+            weekly_activity=activity_by_login.get(c.login.lower(), ()),
+        )
+        for c in contributors
+    ]
 
 
 def fetch_stargazers(owner: str, repo: str) -> list[Stargazer]:
@@ -148,7 +252,12 @@ def apply_adds(contributors: list[Contributor], add_specs: list[str], exclude: f
             continue
         existing = by_login.get(login.lower())
         if existing is not None:
-            replacement = Contributor(login=existing.login, contributions=count, avatar_url=existing.avatar_url)
+            replacement = Contributor(
+                login=existing.login,
+                contributions=count,
+                avatar_url=existing.avatar_url,
+                weekly_activity=existing.weekly_activity,
+            )
             contributors[contributors.index(existing)] = replacement
             by_login[login.lower()] = replacement
             print(f"  --add overrode {existing.login} count -> {count}", file=sys.stderr)
@@ -174,6 +283,8 @@ def build_community_json(
     contributors = fetch_contributors(owner, repo, exclude_logins)
     if add_specs:
         contributors = apply_adds(contributors, add_specs, exclude_logins)
+    print("fetching contributor activity...", file=sys.stderr)
+    contributors = attach_contributor_activity(contributors, fetch_contributor_activity(owner, repo))
     print(f"  -> {len(contributors)} contributors", file=sys.stderr)
 
     print(f"fetching stargazers for {owner}/{repo}...", file=sys.stderr)
@@ -189,6 +300,15 @@ def build_community_json(
                 "login": c.login,
                 "contributions": c.contributions,
                 "avatar_url": c.avatar_url,
+                "weekly_activity": [
+                    {
+                        "week": week.week,
+                        "commits": week.commits,
+                        "additions": week.additions,
+                        "deletions": week.deletions,
+                    }
+                    for week in c.weekly_activity
+                ],
             }
             for c in contributors
         ],

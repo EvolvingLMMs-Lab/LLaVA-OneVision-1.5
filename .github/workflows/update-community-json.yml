@@ -1,4 +1,4 @@
-name: Update community JSON
+name: Update community assets
 
 on:
   push:
@@ -15,13 +15,12 @@ permissions:
   id-token: write
 
 concurrency:
-  # Bot-driven community refresh + pages deploy share this lock so we never
-  # run two deploys against the same Pages environment in parallel.
-  group: update-community-json
+  # Serialize every community asset refresh and Pages deploy.
+  group: update-community-assets
   cancel-in-progress: false
 
 jobs:
-  build-community-json:
+  build-community-assets:
     # Skip the run we triggered ourselves to avoid an infinite loop.
     if: github.event_name != 'push' || github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
@@ -46,29 +45,39 @@ jobs:
             --repo  "${GITHUB_REPOSITORY#*/}" \
             --add   YunyaoYan:1
 
+      - name: Build contributors SVGs and update README
+        run: |
+          python docs/build_contributors_svg.py \
+            --data      docs/page/assets/community.json \
+            --limit     12 \
+            --out-dark  asset/contributors_dark.svg \
+            --out-light asset/contributors_light.svg \
+            --readme    README.md
+
       - name: Commit and push if changed
         id: push
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          path=docs/page/assets/community.json
-          if [[ -z "$(git status --porcelain "$path")" ]]; then
+          paths=(
+            docs/page/assets/community.json
+            asset/contributors_dark.svg
+            asset/contributors_light.svg
+            README.md
+          )
+          if [[ -z "$(git status --porcelain "${paths[@]}")" ]]; then
             echo "No changes to commit."
             exit 0
           fi
-          git add "$path"
-          git commit -m "docs(page): refresh community.json"
-          # Daily cron and any other concurrent bot push (e.g. reademe-contributors)
-          # can land a commit on main between our checkout and our push. Without
-          # this rebase the push is rejected with "fetch first"; --autostash also
-          # covers the case where the workflow file itself was edited in that gap.
+          git add "${paths[@]}"
+          git commit -m "docs: refresh community assets"
+          # A human push can still land on main between checkout and this push.
           git pull --rebase --autostash origin main
           git push origin HEAD:main
 
       # Deploy Pages in the same workflow. We intentionally do NOT re-checkout
       # between the push and these steps — the working tree still has the
-      # community.json we just committed, which is what we want uploaded as
-      # the artifact.
+      # the generated assets we just committed, which are what we want uploaded.
       - name: Setup Pages
         uses: actions/configure-pages@v6
 
