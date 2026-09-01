@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Build self-contained dark + light SVGs of repository contributors ranked by commit count.
+"""Build compact dark + light README contributor previews from ``community.json``.
 
-Fetches the contributor list from the GitHub REST API
-(``/repos/{owner}/{repo}/contributors``), filters out bots and explicitly
-excluded users, downloads each avatar once, and renders two themed SVGs
+Reads the contributor list produced by ``build_community_json.py``, downloads
+each preview avatar once, and renders two themed SVGs
 (``*_dark.svg`` + ``*_light.svg``) with avatars embedded as base64 ``<image>``
 elements. Also rewrites the README contributors block in place between two
 HTML markers using ``<picture>`` + ``prefers-color-scheme`` so GitHub
@@ -12,14 +11,11 @@ automatically serves the right variant per viewer theme.
 Usage::
 
     python docs/build_contributors_svg.py \\
-        --owner EvolvingLMMs-Lab \\
-        --repo LLaVA-OneVision-2 \\
+        --data docs/page/assets/community.json \\
         --out-dark  asset/contributors_dark.svg \\
         --out-light asset/contributors_light.svg \\
         --readme README.md
 
-If ``GITHUB_TOKEN`` (or ``GH_TOKEN``) is set, it is sent as a Bearer token.
-This is required inside GitHub Actions to avoid the 60/h anon rate limit.
 """
 
 from __future__ import annotations
@@ -27,7 +23,6 @@ from __future__ import annotations
 import argparse
 import base64
 import json
-import os
 import sys
 import urllib.error
 import urllib.request
@@ -37,15 +32,13 @@ from pathlib import Path
 from xml.sax.saxutils import escape as xml_escape
 
 
-DEFAULT_EXCLUDE_LOGINS: frozenset[str] = frozenset({"jiankangdeng"})
-
-AVATAR_PX = 80
+AVATAR_PX = 76
 CELL_PAD_X = 18
 CELL_PAD_Y = 18
 LABEL_GAP = 12
 LABEL_FONT_SIZE = 14
 LABEL_FONT_FAMILY = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif"
-COLUMNS_PER_ROW = 8
+COLUMNS_PER_ROW = 6
 
 TOP_RANK_ACCENT = "#f59e0b"
 
@@ -88,18 +81,6 @@ class Contributor:
         return f"https://github.com/{self.login}"
 
 
-def _auth_headers() -> dict[str, str]:
-    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-        "User-Agent": "build_contributors_svg.py",
-    }
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
-    return headers
-
-
 def _http_get(url: str, headers: dict[str, str] | None = None) -> bytes:
     req = urllib.request.Request(url, headers=headers or {})
     try:
@@ -110,74 +91,28 @@ def _http_get(url: str, headers: dict[str, str] | None = None) -> bytes:
         raise RuntimeError(f"HTTP {exc.code} for {url}\n{body[:500]}") from exc
 
 
-def fetch_contributors(owner: str, repo: str) -> list[Contributor]:
-    """Fetch human contributors for ``owner/repo``, paginated, bots dropped."""
-    headers = _auth_headers()
-    per_page = 100
-    page = 1
-    out: list[Contributor] = []
-    while True:
-        url = f"https://api.github.com/repos/{owner}/{repo}/contributors?per_page={per_page}&page={page}"
-        batch = json.loads(_http_get(url, headers=headers))
-        if not batch:
-            break
-        for entry in batch:
-            if entry.get("type") != "User":
-                continue
-            out.append(
-                Contributor(
-                    login=entry["login"],
-                    contributions=int(entry["contributions"]),
-                    avatar_url=entry["avatar_url"],
-                )
-            )
-        if len(batch) < per_page:
-            break
-        page += 1
-    return out
-
-
 def fetch_avatar_png(avatar_url: str, size: int) -> bytes:
     sep = "&" if "?" in avatar_url else "?"
     sized = f"{avatar_url}{sep}s={size}"
     return _http_get(sized, headers={"User-Agent": "build_contributors_svg.py"})
 
 
-def fetch_user_avatar_url(login: str) -> str:
-    """Resolve a single user's canonical ``avatar_url`` via the users API.
-
-    Falls back to the stable ``https://github.com/{login}.png`` redirect if the
-    user lookup fails (e.g. rate limit), which GitHub serves for any valid login.
-    """
-    try:
-        data = json.loads(_http_get(f"https://api.github.com/users/{login}", headers=_auth_headers()))
-        url = data.get("avatar_url")
-        if url:
-            return url
-    except RuntimeError as exc:
-        print(
-            f"[contributors-svg]   warning: users API lookup failed for {login} ({exc}); "
-            f"falling back to github.com/{login}.png",
-            file=sys.stderr,
+def load_contributors(data_path: Path) -> list[Contributor]:
+    payload = json.loads(data_path.read_text(encoding="utf-8"))
+    raw = payload.get("contributors")
+    if not isinstance(raw, list):
+        raise RuntimeError(f"missing contributors list in {data_path}")
+    contributors = [
+        Contributor(
+            login=str(entry["login"]),
+            contributions=int(entry.get("contributions", 0)),
+            avatar_url=str(entry["avatar_url"]),
         )
-    return f"https://github.com/{login}.png"
-
-
-def parse_add_spec(spec: str) -> tuple[str, int]:
-    """Parse a ``--add`` value of form ``login`` or ``login:count`` (count >= 0)."""
-    login, sep, count_str = spec.partition(":")
-    login = login.strip()
-    if not login:
-        raise ValueError(f"--add spec missing login: {spec!r}")
-    if not sep:
-        return login, 1
-    try:
-        count = int(count_str)
-    except ValueError as exc:
-        raise ValueError(f"--add count must be an integer: {spec!r}") from exc
-    if count < 0:
-        raise ValueError(f"--add count must be >= 0: {spec!r}")
-    return login, count
+        for entry in raw
+        if entry.get("login") and entry.get("avatar_url")
+    ]
+    contributors.sort(key=lambda c: (-c.contributions, c.login.lower()))
+    return contributors
 
 
 def _truncate(text: str, max_chars: int = 16) -> str:
@@ -273,13 +208,15 @@ def rewrite_readme(readme_path: Path, dark_rel: str, light_rel: str) -> bool:
     new_block = (
         f"{README_MARKER_START}\n"
         f'<p align="center">\n'
-        f'  <a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-2/graphs/contributors">\n'
+        f'  <a href="https://evolvinglmms-lab.github.io/LLaVA-OneVision-2/projects/index.html#contributors">\n'
         f"    <picture>\n"
         f'      <source media="(prefers-color-scheme: dark)" srcset="{dark_rel}">\n'
         f'      <source media="(prefers-color-scheme: light)" srcset="{light_rel}">\n'
         f'      <img src="{light_rel}" alt="Contributors ranked by commit count" />\n'
         f"    </picture>\n"
         f"  </a>\n"
+        f"  <br />\n"
+        f'  <a href="https://evolvinglmms-lab.github.io/LLaVA-OneVision-2/projects/index.html#contributors"><strong>Explore all contributors &rarr;</strong></a>\n'
         f"</p>\n"
         f"{README_MARKER_END}"
     )
@@ -294,8 +231,13 @@ def _parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Build a contributors SVG ranked by commit count and update README.",
     )
-    parser.add_argument("--owner", default="EvolvingLMMs-Lab")
-    parser.add_argument("--repo", default="LLaVA-OneVision-2")
+    parser.add_argument(
+        "--data",
+        type=Path,
+        default=Path("docs/page/assets/community.json"),
+        help="community JSON generated by build_community_json.py",
+    )
+    parser.add_argument("--limit", type=int, default=12, help="number of top contributors in the preview")
     parser.add_argument("--out-dark", type=Path, default=Path("asset/contributors_dark.svg"))
     parser.add_argument("--out-light", type=Path, default=Path("asset/contributors_light.svg"))
     parser.add_argument(
@@ -304,23 +246,6 @@ def _parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
         default=Path("README.md"),
         help="Pass an empty string to skip README update.",
     )
-    parser.add_argument(
-        "--exclude",
-        action="append",
-        default=None,
-        help=(f"Additional login to exclude (repeatable). Always-on defaults: {sorted(DEFAULT_EXCLUDE_LOGINS)}"),
-    )
-    parser.add_argument(
-        "--add",
-        action="append",
-        default=None,
-        metavar="login[:count]",
-        help=(
-            "Force-include a login the GitHub contributors API omits (repeatable). "
-            "Optional :count sets the commit count used for ranking (default 1). "
-            "If the login is already returned by the API, count overrides its value."
-        ),
-    )
     parser.add_argument("--dry-run", action="store_true")
     return parser.parse_args(list(argv) if argv is not None else None)
 
@@ -328,41 +253,13 @@ def _parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
 def main(argv: Iterable[str] | None = None) -> int:
     args = _parse_args(argv)
 
-    excludes: set[str] = set(DEFAULT_EXCLUDE_LOGINS)
-    if args.exclude:
-        excludes.update(args.exclude)
+    if args.limit < 1:
+        raise ValueError("--limit must be at least 1")
+    all_contributors = load_contributors(args.data)
+    contributors = all_contributors[: args.limit]
 
     print(
-        f"[contributors-svg] fetching {args.owner}/{args.repo} contributors ...",
-        file=sys.stderr,
-    )
-    raw = fetch_contributors(args.owner, args.repo)
-    contributors = [c for c in raw if c.login not in excludes]
-
-    if args.add:
-        by_login = {c.login.lower(): c for c in contributors}
-        for spec in args.add:
-            login, count = parse_add_spec(spec)
-            if login in excludes:
-                print(f"[contributors-svg] --add {login} skipped (also excluded)", file=sys.stderr)
-                continue
-            existing = by_login.get(login.lower())
-            if existing is not None:
-                replacement = Contributor(login=existing.login, contributions=count, avatar_url=existing.avatar_url)
-                contributors[contributors.index(existing)] = replacement
-                by_login[login.lower()] = replacement
-                print(f"[contributors-svg] --add overrode {existing.login} count -> {count}", file=sys.stderr)
-            else:
-                added = Contributor(login=login, contributions=count, avatar_url=fetch_user_avatar_url(login))
-                contributors.append(added)
-                by_login[login.lower()] = added
-                print(f"[contributors-svg] --add force-included {login} ({count} commits)", file=sys.stderr)
-
-    contributors.sort(key=lambda c: (-c.contributions, c.login.lower()))
-
-    print(
-        f"[contributors-svg] {len(contributors)} contributors after filtering "
-        f"({len(raw) - len(contributors)} dropped: {sorted(excludes)})",
+        f"[contributors-svg] rendering top {len(contributors)} of {len(all_contributors)} contributors from {args.data}",
         file=sys.stderr,
     )
     if not contributors:

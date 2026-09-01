@@ -498,13 +498,15 @@ Thanks so much to all of our amazing contributors!
 
 <!-- readme: collaborators,contributors,jiankangdeng/- -start -->
 <p align="center">
-  <a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-2/graphs/contributors">
+  <a href="https://evolvinglmms-lab.github.io/LLaVA-OneVision-2/projects/index.html#contributors">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="asset/contributors_dark.svg">
       <source media="(prefers-color-scheme: light)" srcset="asset/contributors_light.svg">
       <img src="asset/contributors_light.svg" alt="Contributors ranked by commit count" />
     </picture>
   </a>
+  <br />
+  <a href="https://evolvinglmms-lab.github.io/LLaVA-OneVision-2/projects/index.html#contributors"><strong>Explore all contributors &rarr;</strong></a>
 </p>
 <!-- readme: collaborators,contributors,jiankangdeng/- -end -->
 
